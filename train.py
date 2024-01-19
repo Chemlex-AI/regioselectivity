@@ -20,12 +20,12 @@ args = parser.parse_args()
    
 device = torch.device('cuda')
 
-train = pd.read_csv('./demo_data/train_add_split.csv', index_col=0)
+train = pd.read_csv('./example_data/train_add_split.csv', index_col=0)
 train_rxn_id = train['reaction_id'].values
 train_smiles = train.rxn_smiles.str.split('>', expand=True)[0].values
 train_products = train.products_run.values
 
-valid = pd.read_csv('./demo_data/valid_add_split.csv', index_col=0)
+valid = pd.read_csv('./example_data/valid_add_split.csv', index_col=0)
 valid_rxn_id = valid['reaction_id'].values
 valid_smiles = valid.rxn_smiles.str.split('>', expand=True)[0].values
 valid_products = valid.products_run.values
