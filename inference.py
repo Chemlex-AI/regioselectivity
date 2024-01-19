@@ -20,7 +20,7 @@ args = parser.parse_args()
    
 device = torch.device('cuda')
 
-test = pd.read_csv('./demo_data/example.csv')
+test = pd.read_csv('./example_data/example.csv')
 test_rxn_id = test['reaction_id'].values
 test_smiles = test.rxn_smiles.str.split('>', expand=True)[0].values
 test_products = test.products_run.values
