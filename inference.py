@@ -112,11 +112,11 @@ for indice, (test_product, test_smile,test_type) in tqdm(enumerate(zip(test_prod
     s_s = zip(sterics, scores, tps)
     s_s = sorted(s_s, key = lambda x: x[1], reverse = True)
     for ss in s_s:
-        if ss[0] <= 0.7:
+        if ss[0] <= 0.6:
             res_dict['predicted_main_product'].append(ss[2])
             break
     
-    # add the product with the highest reacting score for reaction with the steric of products are all greater than 0.7
+    # add the product with the highest reacting score for reaction with the steric of products are all greater than 0.6
     if len(res_dict['predicted_main_product']) == indice:
         res_dict['predicted_main_product'].append(s_s[0][2])
         
