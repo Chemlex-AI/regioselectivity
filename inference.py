@@ -37,9 +37,9 @@ model = model.to(device)
 model.eval()
 predss = []
 # model inference reacting score
-for test_data in tqdm(test_data):
+for t_data in tqdm(test_data):
     test_p = []
-    for tensors in test_data:
+    for tensors in t_data:
         test_p.append(tensors.squeeze().to(device))
     preds = model(test_p)
     predss.append(preds.to('cpu').tolist())
