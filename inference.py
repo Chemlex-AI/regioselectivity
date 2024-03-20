@@ -20,7 +20,7 @@ args = parser.parse_args()
    
 device = torch.device('cuda')
 
-test = pd.read_csv('./demo_data/example.csv')
+test = pd.read_csv('./example_data/example.csv')
 test_rxn_id = test['reaction_id'].values
 test_smiles = test.rxn_smiles.str.split('>', expand=True)[0].values
 test_products = test.products_run.values
@@ -37,9 +37,9 @@ model = model.to(device)
 model.eval()
 predss = []
 # model inference reacting score
-for test_data in tqdm(test_data):
+for t_data in tqdm(test_data):
     test_p = []
-    for tensors in test_data:
+    for tensors in t_data:
         test_p.append(tensors.squeeze().to(device))
     preds = model(test_p)
     predss.append(preds.to('cpu').tolist())
