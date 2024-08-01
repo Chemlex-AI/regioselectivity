@@ -1,8 +1,20 @@
-import torch
-import numpy as np
 from torch.utils.data import Dataset, DataLoader
-from ..graph_utils.mol_graph import smiles2graph_pr, pack1D, pack2D, pack2D_withidx, get_mask
-from ..graph_utils.ioutils_direct import binary_features_batch
+from ..graph_utils.mol_graph import smiles2graph_pr
+from rdkit import Chem
+
+def rm_atom_map_num(smi):
+    mol_r = Chem.MolFromSmiles(smi)
+    for atoms in mol_r.GetAtoms():
+        atoms.SetAtomMapNum(0)
+    return Chem.MolToSmiles(mol_r)
+
+def reaction_rm_am(reactants, product):
+    rss = []
+    products = product.split('.')
+    for rs, p in zip(reactants, products):
+        rxn_smiles = rm_atom_map_num(rs) + '>>' + rm_atom_map_num(p)
+        rss.append(rxn_smiles)
+    return rss
 
 class GraphDataset(Dataset):
     def __init__(self, smiles, products, rxn_id, predict=False):
@@ -35,6 +47,8 @@ class GraphDataset(Dataset):
         rs_extends, smiles_extend = zip(*prs_extend)
         fatom_list, fatom_qm_list, fbond_list, gatom_list, gbond_list, nb_list, core_mask = zip(*rs_extends)
         
+        rxn_rss = reaction_rm_am(smiles_extend, products_temp)
+        
         res_graph_inputs = [
             fatom_list,
             fbond_list,
@@ -45,8 +59,9 @@ class GraphDataset(Dataset):
             smiles_extend,
             core_mask,
             fatom_qm_list,
+            rxn_rss
         ]
-      
+        
         if self.predict:
             return res_graph_inputs
         else:

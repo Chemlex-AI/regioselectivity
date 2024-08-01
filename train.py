@@ -13,19 +13,22 @@ parser = argparse.ArgumentParser()
 parser.add_argument('-b', '--batch_size', default = 20, type = int)
 parser.add_argument('-hs', '--hidden_size', default = 100, type = int)
 parser.add_argument('-d', '--depth', default = 4, type = int)
-parser.add_argument('-ne', '--n_epochs', default = 5, type = int)
-parser.add_argument('-m','--model_path', default = 'models/model.pt', type = str) 
+parser.add_argument('-ne', '--n_epochs', default = 20, type = int)
+parser.add_argument('-m','--model_path', default = 'model/model_structure.pt', type = str)
+parser.add_argument('-train','--train_path', default = 'example_data/train_add_split_0.csv', type = str)
+parser.add_argument('-valid','--valid_path', default = 'example_data/valid_add_split_0.csv', type = str) 
 parser.add_argument('-lr', '--learning_rate', default = 1e-3, type= float)
 args = parser.parse_args()
    
 device = torch.device('cuda')
 
-train = pd.read_csv('./demo_data/train_add_split.csv', index_col=0)
+
+train = pd.read_csv(args.train_path, index_col=0)
 train_rxn_id = train['reaction_id'].values
 train_smiles = train.rxn_smiles.str.split('>', expand=True)[0].values
 train_products = train.products_run.values
 
-valid = pd.read_csv('./demo_data/valid_add_split.csv', index_col=0)
+valid = pd.read_csv(args.valid_path, index_col=0)
 valid_rxn_id = valid['reaction_id'].values
 valid_smiles = valid.rxn_smiles.str.split('>', expand=True)[0].values
 valid_products = valid.products_run.values
@@ -34,7 +37,6 @@ df = predict_desc(train, valid, args, in_train=True)
 initialize_qm_descriptors(df=df)
 train_data = GraphDataLoader(train_smiles, train_products, train_rxn_id, args.batch_size, predict=False, collate_fn = train_collate_batch, num_workers=10)
 valid_data = GraphDataLoader(valid_smiles, valid_products, valid_rxn_id, args.batch_size, predict=False, collate_fn = train_collate_batch, num_workers=10)
-
 model = MPNN(args.hidden_size,args.depth)
 model = model.to(device)
 
@@ -49,10 +51,12 @@ for epoch in tqdm(range(n_epochs)):
     predss = []
     nums = 1 
     for t_data, t_lab in tqdm(train_data):
-        
         t_p =[]
         for tensors in t_data:
-            t_p.append(tensors.squeeze().to(device))
+            if not isinstance(tensors, list):
+                t_p.append(tensors.squeeze().to(device))
+            else:
+                t_p.append(tensors)
         st_lab = t_lab.to(device)
 
         model.zero_grad()
@@ -83,7 +87,11 @@ for epoch in tqdm(range(n_epochs)):
         
         v_p =[]
         for tensors in v_data:
-            v_p.append(tensors.squeeze().to(device))
+            if not isinstance(tensors, list):
+                v_p.append(tensors.squeeze().to(device))
+            else:
+                v_p.append(tensors)
+                
         sv_lab = v_lab.to(device)
 
         preds = model(v_p)

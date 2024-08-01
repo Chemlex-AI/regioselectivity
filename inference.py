@@ -4,7 +4,6 @@ from MPNN.graph_utils.mol_graph import initialize_qm_descriptors
 from predict.predict_desc import predict_desc
 import argparse
 import torch
-from torch.optim import Adam, lr_scheduler
 from MPNN.MPNN.model import MPNN
 from tqdm import tqdm
 from utils import test_collate_batch, numpy_sh_perct
@@ -12,15 +11,16 @@ from rdkit import Chem
 from rdkit.Chem import AllChem
 
 parser = argparse.ArgumentParser()
-parser.add_argument('-b', '--batch_size', default = 10, type = int)
+parser.add_argument('-b', '--batch_size', default = 20, type = int)
 parser.add_argument('-hs', '--hidden_size', default = 100, type = int)
 parser.add_argument('-d', '--depth', default = 4, type = int)
-parser.add_argument('-m', '--model_path', required=True, type = str)
+parser.add_argument('-m', '--model_path', default='model/model_structure.pt', type = str)
+parser.add_argument('-test', '--test_path', required=True, type = str)
 args = parser.parse_args()
    
 device = torch.device('cuda')
 
-test = pd.read_csv('./example_data/example.csv')
+test = pd.read_csv(args.test_path)
 test_rxn_id = test['reaction_id'].values
 test_smiles = test.rxn_smiles.str.split('>', expand=True)[0].values
 test_products = test.products_run.values
@@ -40,9 +40,13 @@ predss = []
 for t_data in tqdm(test_data):
     test_p = []
     for tensors in t_data:
-        test_p.append(tensors.squeeze().to(device))
+        if not isinstance(tensors, list):
+            test_p.append(tensors.squeeze().to(device))
+        else:
+            test_p.append(tensors)
     preds = model(test_p)
     predss.append(preds.to('cpu').tolist())
+
 
 Buchwald_template = '[#7;!H0:1].[Cl,Br,I,$(OS(=O)(=O))][#6:2]>>[#7:1]-[#6:2]'
 Heck_template = "[C:1]=[C:2][#6:3].[Cl,Br,I,$(OS(=O)(=O)C(F)(F)F),$(OS(=O)(=O)c1ccc([CH3])cc1),$([N+]#N)][#6:4]>>[#6:4][C:1]=[C:2][#6:3]"
@@ -120,4 +124,4 @@ for indice, (test_product, test_smile,test_type) in tqdm(enumerate(zip(test_prod
     if len(res_dict['predicted_main_product']) == indice:
         res_dict['predicted_main_product'].append(s_s[0][2])
         
-pd.DataFrame.from_dict(res_dict).to_csv('inference_result.csv', index=False)
+pd.DataFrame.from_dict(res_dict).to_csv('example_data/inference_result.csv', index=False)

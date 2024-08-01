@@ -3,7 +3,7 @@ import pickle
 
 import pandas as pd
 from rdkit import Chem
-from .handler import ReactivityDescriptorHandler
+from .handler import ReactivityDescriptorHandler, ReactivityDescriptorHandler1
 from tqdm import tqdm
 
 from .post_process import check_chemprop_out, min_max_normalize
@@ -33,12 +33,15 @@ def predict_desc(t_data,v_data,args, in_train = True, normalize=True):
     print('Predicting descriptors for reactants...')
 
     handler = ReactivityDescriptorHandler()
-
+    handler1 = ReactivityDescriptorHandler1()
     descs = []
     for  smiles in tqdm(reactants):
-        
-        descs.append(handler.predict(smiles))
-
+        desc0 = handler.predict(smiles)
+        desc1 = handler1.predict(smiles)
+        for k,v in desc0.items():
+            if k not in desc1.keys():
+                desc1[k] = v
+        descs.append(desc1)
     df = pd.DataFrame(descs)
     
     invalid = check_chemprop_out(df)

@@ -2,6 +2,7 @@ from rdkit import Chem
 import numpy as np
 import pandas as pd
 
+
 elem_list = ['C', 'O', 'N', 'F', 'Br', 'Cl', 'S', 'Sn', 'Zn', 'Si', 'B', 'I', 'P', 'Mg', 'H']
 
 atom_fdim_geo = len(elem_list) + 6 + 6 + 6 + 1
@@ -101,7 +102,6 @@ def _mol2graph(rs, idxfunc=lambda x: x.GetIdx(), core=[]):
         nmr = qm_series['NMR'].reshape(-1, 1)
         nmr = np.apply_along_axis(rbf_expansion, -1, nmr, 0.2, 0.08, 10)
 
-
         bond_distance = np.expand_dims(qm_series['distance_matrix'], -1)
         bond_distance = np.apply_along_axis(rbf_expansion, -1, bond_distance, 0.5, 0.05, 40)
 
@@ -135,10 +135,9 @@ def _mol2graph(rs, idxfunc=lambda x: x.GetIdx(), core=[]):
             fbonds_geo[idx, :] = bond_features(bond)
             fbonds_qm[idx, :] = bond_distance[a1i, a2i]
 
-            fatoms = np.concatenate([fatoms_geo, fatoms_qm], axis=-1)
             fbonds = np.concatenate([fbonds_geo, fbonds_qm], axis=-1)
 
-    return fatoms_geo, fatoms_qm, fbonds_qm, atom_nb, bond_nb, num_nbs, core_mask
+    return fatoms_geo, fatoms_qm, fbonds, atom_nb, bond_nb, num_nbs, core_mask
 
 
 def smiles2graph_pr(p_smiles, r_smiles, idxfunc=lambda x: x.GetIdx(), core_buffer=0):
@@ -289,6 +288,7 @@ def get_bond_edits(reactant_smi, product_smi):
             bond_changes.add((bond.split('~')[0], bond.split('~')[1], bonds_new[bond]))  # new bond
 
     return bond_changes
+
 
 
 

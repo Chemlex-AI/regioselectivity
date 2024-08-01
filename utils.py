@@ -5,7 +5,6 @@ import numpy as np
 import torch.nn as nn
 from numpy import linalg
 from steric_hinderance import mol_conf, get_randm_points, vdw_r
-from rdkit import Chem
 
 stm = nn.Softmax(dim=0)
 
@@ -22,7 +21,7 @@ def train_collate_batch(batch_data):
                     dict_f[ix] = [ilili]
                 else:
                     dict_f[ix].append(ilili)
-
+    
     data_ls = [
         torch.tensor(pack2D(dict_f[0]), dtype= torch.float),
         torch.tensor(pack2D(dict_f[1]), dtype= torch.float),
@@ -33,6 +32,7 @@ def train_collate_batch(batch_data):
         torch.tensor(binary_features_batch(dict_f[6]), dtype= torch.float),
         torch.tensor(pack1D(dict_f[7]), dtype= torch.float),
         torch.tensor(pack2D(dict_f[8]), dtype= torch.float),
+        dict_f[9]
     ]
 
     target_ls= []
@@ -66,6 +66,7 @@ def test_collate_batch(batch_data):
         torch.tensor(binary_features_batch(dict_f[6]), dtype= torch.float),
         torch.tensor(pack1D(dict_f[7]), dtype= torch.float),
         torch.tensor(pack2D(dict_f[8]), dtype= torch.float),
+        dict_f[9]
     ]
     return data_ls
 
